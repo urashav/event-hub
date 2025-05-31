@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"github.com/urashav/event-hub/configs"
+	"github.com/urashav/event-hub/internal/app"
+	"log"
+)
 
 func main() {
-	fmt.Println("Hello, World!!!")
+	cfg, err := configs.InitConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.App(cfg)
 }
