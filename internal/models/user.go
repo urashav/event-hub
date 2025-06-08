@@ -1,26 +1,15 @@
 package models
 
-import "time"
+import "github.com/go-playground/validator/v10"
 
 type User struct {
-	BaseModel
-	ID       int
-	Email    string
-	Password string
+	ID       int    `json:"id,omitempty"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8,max=255"` // Password should be hashed before storing
 }
 
-type Event struct {
-	BaseModel
-	ID       int
-	Name     string
-	Date     time.Time
-	Address  string
-	Status   string
-	Capacity int
-}
+func (u *User) Validate() error {
+	validate := validator.New()
+	return validate.Struct(u)
 
-type UserEvent struct {
-	BaseModel
-	User_id  int
-	Event_id int
 }

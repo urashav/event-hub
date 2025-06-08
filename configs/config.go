@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	ServerPort int
+	JWT
 	Database
 }
 
@@ -18,6 +19,10 @@ type Database struct {
 	Username string
 	Password string
 	Name     string
+}
+
+type JWT struct {
+	SigningKey string
 }
 
 func InitConfig() (*Config, error) {
@@ -31,6 +36,8 @@ func InitConfig() (*Config, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	viper.SetDefault("SERVER_PORT", "8000")
+	viper.SetDefault("JWT_SIGNING_KEY", "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+
 	cfg := Config{
 		ServerPort: viper.GetInt("SERVER_PORT"),
 		Database: Database{
@@ -39,6 +46,9 @@ func InitConfig() (*Config, error) {
 			Username: viper.GetString("DB_USER"),
 			Password: viper.GetString("DB_PASSWORD"),
 			Name:     viper.GetString("DB_NAME"),
+		},
+		JWT: JWT{
+			SigningKey: viper.GetString("JWT_SIGNING_KEY"),
 		},
 	}
 	return &cfg, nil
