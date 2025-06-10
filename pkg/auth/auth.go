@@ -14,6 +14,7 @@ type TokenClaims struct {
 	jwt.RegisteredClaims
 	UserID int    `json:"user_id"`
 	Email  string `json:"email"`
+	Role   string `json:"role"`
 }
 
 func NewTokenManager(signingKey string) *TokenManager {
@@ -22,7 +23,7 @@ func NewTokenManager(signingKey string) *TokenManager {
 	}
 }
 
-func (m *TokenManager) GenerateToken(userID int, email string) (string, error) {
+func (m *TokenManager) GenerateToken(userID int, email string, role string) (string, error) {
 	claims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
@@ -31,6 +32,7 @@ func (m *TokenManager) GenerateToken(userID int, email string) (string, error) {
 		},
 		UserID: userID,
 		Email:  email,
+		Role:   role,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(m.signingKey))

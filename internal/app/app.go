@@ -73,6 +73,17 @@ func App(cfg *configs.Config) {
 		commonMiddleware,
 		authMiddleware.RequireAuth)
 
+	adminProtected := middleware.Chain(
+		protected,
+		middleware.AdminRequired,
+	)
+	mux.Handle("/api/v1/admin/users", adminProtected(
+		http.HandlerFunc(user_handler.ListUsers),
+	))
+	mux.Handle("/api/v1/admin/users/role", adminProtected(
+		http.HandlerFunc(user_handler.UpdateUserRole),
+	))
+
 	mux.Handle("/api/v1/protected", protected(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Context().Value("user_id").(int)

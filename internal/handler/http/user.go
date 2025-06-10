@@ -1,9 +1,10 @@
 package http
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/urashav/event-hub/internal/dto/request"
 	"github.com/urashav/event-hub/internal/dto/response"
+	"github.com/urashav/event-hub/internal/models"
 	"github.com/urashav/event-hub/internal/service"
 	httputils "github.com/urashav/event-hub/pkg/httputilst"
 	"net/http"
@@ -69,9 +70,48 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.service.AuthenticateUser(r.Context(), req.Email, req.Password)
 	if err != nil {
-		fmt.Println(err)
 		httputils.ErrorResponse.Unauthorized(w, "Invalid credentials")
 		return
 	}
 	httputils.SendSuccess(w, map[string]string{"token": token}, http.StatusOK)
+}
+func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		httputils.ErrorResponse.MethodNotAllowed(w, "Method not allowed")
+		return
+	}
+
+	users, err := h.service.ListUsers(r.Context())
+	if err != nil {
+		httputils.ErrorResponse.InternalError(w, "Failed to get users")
+		return
+	}
+
+	httputils.SendSuccess(w, users, http.StatusOK)
+}
+
+func (h *UserHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		httputils.ErrorResponse.MethodNotAllowed(w, "Method not allowed")
+		return
+	}
+
+	var req struct {
+		UserID int         `json:"user_id"`
+		Role   models.Role `json:"role"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ErrorResponse.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	adminID := r.Context().Value("user_id").(int)
+	err := h.service.UpdateUserRole(r.Context(), adminID, req.UserID, req.Role)
+	if err != nil {
+		httputils.ErrorResponse.InternalError(w, "Failed to update user role")
+		return
+	}
+
+	httputils.SendSuccess(w, map[string]string{"message": "Role updated successfully"}, http.StatusOK)
 }

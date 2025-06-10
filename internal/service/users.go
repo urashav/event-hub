@@ -9,7 +9,6 @@ import (
 	"github.com/urashav/event-hub/internal/repository/postgres"
 	"github.com/urashav/event-hub/pkg/auth"
 	"github.com/urashav/event-hub/pkg/hasher"
-	"log"
 )
 
 type UsersService struct {
@@ -43,11 +42,10 @@ func (s *UsersService) AuthenticateUser(ctx context.Context, email, password str
 		return "", errors.New("Invalid credentials")
 
 	}
-	token, err := s.tokenManager.GenerateToken(user.ID, user.Email)
+	token, err := s.tokenManager.GenerateToken(user.ID, user.Email, string(user.Role))
 	if err != nil {
 		return "", err
 	}
-	log.Println("Token:", token)
 	return token, nil
 }
 
@@ -57,6 +55,7 @@ func (s *UsersService) CreateUser(ctx context.Context, user models.User) (*model
 		return nil, fmt.Errorf("Failed to hash password: %v", err)
 	}
 	user.Password = hashedPassword
+	user.Role = models.RoleUser
 
 	id, err := s.repo.Create(ctx, &user)
 	if err != nil {
@@ -64,4 +63,21 @@ func (s *UsersService) CreateUser(ctx context.Context, user models.User) (*model
 	}
 	user.ID = int(id)
 	return &user, nil
+}
+
+func (s *UsersService) UpdateUserRole(ctx context.Context, adminID int, userID int, newRole models.Role) error {
+	admin, err := s.repo.GetByID(ctx, adminID)
+	if err != nil {
+		return err
+	}
+
+	if admin.Role != models.RoleAdmin {
+		return errors.New("insufficient permissions")
+	}
+
+	return s.repo.UpdateRole(ctx, userID, newRole)
+}
+
+func (s *UsersService) ListUsers(ctx context.Context) ([]*models.User, error) {
+	return s.repo.List(ctx)
 }
