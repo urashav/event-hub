@@ -6,19 +6,19 @@ import (
 	"errors"
 	"fmt"
 	"github.com/urashav/event-hub/internal/models"
-	"github.com/urashav/event-hub/internal/repository/postgres"
+	"github.com/urashav/event-hub/internal/repository"
 	"github.com/urashav/event-hub/pkg/auth"
 	"github.com/urashav/event-hub/pkg/hasher"
 )
 
 type UsersService struct {
-	repo         *postgres.UserRepository
+	repo         repository.UserRepository
 	hasher       *hasher.Hasher
 	tokenManager *auth.TokenManager
 }
 
 func NewUserService(
-	repo *postgres.UserRepository,
+	repo repository.UserRepository,
 	hasher *hasher.Hasher,
 	tokenManager *auth.TokenManager,
 ) *UsersService {
